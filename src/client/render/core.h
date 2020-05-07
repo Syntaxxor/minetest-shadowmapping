@@ -50,6 +50,8 @@ protected:
 	video::ITexture *shadow_map = nullptr;
 
 	int shadow_map_size = 3;
+	core::matrix4 orthoMat;
+	
 
 	void updateScreenSize();
 	virtual void initTextures();

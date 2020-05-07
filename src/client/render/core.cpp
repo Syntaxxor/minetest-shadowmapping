@@ -25,14 +25,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "client/hud.h"
 #include "client/minimap.h"
 
-RenderingCore::RenderingCore(IrrlichtDevice *_device, Client *_client, Hud *_hud)
-	: device(_device), driver(device->getVideoDriver()), smgr(device->getSceneManager()),
-	guienv(device->getGUIEnvironment()), client(_client), camera(client->getCamera()),
-	mapper(client->getMinimap()), hud(_hud)
+RenderingCore::RenderingCore(IrrlichtDevice *_device, Client *_client, Hud *_hud) :
+		device(_device), driver(device->getVideoDriver()),
+		smgr(device->getSceneManager()), guienv(device->getGUIEnvironment()),
+		client(_client), camera(client->getCamera()),
+		mapper(client->getMinimap()), hud(_hud)
 {
 	screensize = driver->getScreenSize();
 	virtual_size = screensize;
-	shadow_map_size = g_settings->getS16("shadow_quality");
+
+	orthoMat = core::matrix4();
+	orthoMat.buildProjectionMatrixOrthoRH(128, 128, -128, 128);
 }
 
 RenderingCore::~RenderingCore()
@@ -57,7 +60,9 @@ void RenderingCore::initTextures()
 {
 	if (shadow_map_size == -1)
 		return;
-	v2u32 size = v2u32(1024 * pow(2, shadow_map_size));
+	int minRes = std::min(screensize.X, screensize.Y);
+	int shadowSize = (int)floor(log2(minRes));
+	v2u32 size = v2u32(shadowSize);
 	shadow_map = driver->addRenderTargetTexture(size, "shadow_map", video::ECF_R32F);
 }
 
@@ -73,6 +78,15 @@ void RenderingCore::drawShadow()
 	if (shadow_map_size == -1)
 		return;
 	driver->setRenderTarget(shadow_map);
+
+	core::matrix4 cameraMat = core::matrix4();
+	cameraMat.setTranslation(-camera->getPosition());
+	cameraMat.setRotationDegrees(core::vector3df(45, 45, 0));
+	driver->setTransform(video::ETS_VIEW, cameraMat);
+	
+	driver->setTransform(video::ETS_PROJECTION, orthoMat);
+
+	smgr->drawAll();
 
 	driver->setRenderTarget(0, false, false);
 }
@@ -91,7 +105,6 @@ void RenderingCore::draw(video::SColor _skycolor, bool _show_hud, bool _show_min
 	draw_wield_tool = _draw_wield_tool;
 	draw_crosshair = _draw_crosshair;
 
-	drawShadow();
 	beforeDraw();
 	drawAll();
 }
@@ -124,4 +137,5 @@ void RenderingCore::drawHUD()
 void RenderingCore::drawPostFx()
 {
 	client->getEnv().getClientMap().renderPostFx(camera->getCameraMode());
+	//driver->draw2DImage(shadow_map, core::vector2di(0));
 }
