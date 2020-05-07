@@ -183,6 +183,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("lighting_boost_spread", "0.2");
 	settings->setDefault("texture_path", "");
 	settings->setDefault("shader_path", "");
+	settings->setDefault("shadow_quality", "1");
 #if ENABLE_GLES
 #ifdef _IRR_COMPILE_WITH_OGLES1_
 	settings->setDefault("video_driver", "ogles1");

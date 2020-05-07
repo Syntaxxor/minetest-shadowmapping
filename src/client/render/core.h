@@ -47,9 +47,15 @@ protected:
 	Minimap *mapper;
 	Hud *hud;
 
+	video::ITexture *shadow_map = nullptr;
+
+	int shadow_map_size = 3;
+
 	void updateScreenSize();
-	virtual void initTextures() {}
-	virtual void clearTextures() {}
+	virtual void initTextures();
+	virtual void clearTextures();
+
+	void drawShadow();
 
 	virtual void beforeDraw() {}
 	virtual void drawAll() = 0;

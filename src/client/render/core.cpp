@@ -32,6 +32,7 @@ RenderingCore::RenderingCore(IrrlichtDevice *_device, Client *_client, Hud *_hud
 {
 	screensize = driver->getScreenSize();
 	virtual_size = screensize;
+	shadow_map_size = g_settings->getS16("shadow_quality");
 }
 
 RenderingCore::~RenderingCore()
@@ -52,6 +53,30 @@ void RenderingCore::updateScreenSize()
 	initTextures();
 }
 
+void RenderingCore::initTextures()
+{
+	if (shadow_map_size == -1)
+		return;
+	v2u32 size = v2u32(1024 * pow(2, shadow_map_size));
+	shadow_map = driver->addRenderTargetTexture(size, "shadow_map", video::ECF_R32F);
+}
+
+void RenderingCore::clearTextures()
+{
+	if (shadow_map_size == -1)
+		return;
+	driver->removeTexture(shadow_map);
+}
+
+void RenderingCore::drawShadow()
+{
+	if (shadow_map_size == -1)
+		return;
+	driver->setRenderTarget(shadow_map);
+
+	driver->setRenderTarget(0, false, false);
+}
+
 void RenderingCore::draw(video::SColor _skycolor, bool _show_hud, bool _show_minimap,
 		bool _draw_wield_tool, bool _draw_crosshair)
 {
@@ -66,6 +91,7 @@ void RenderingCore::draw(video::SColor _skycolor, bool _show_hud, bool _show_min
 	draw_wield_tool = _draw_wield_tool;
 	draw_crosshair = _draw_crosshair;
 
+	drawShadow();
 	beforeDraw();
 	drawAll();
 }

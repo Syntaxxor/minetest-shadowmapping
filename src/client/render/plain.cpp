@@ -40,6 +40,7 @@ void RenderingCorePlain::initTextures()
 	v2u32 size{scaledown(scale, screensize.X), scaledown(scale, screensize.Y)};
 	lowres = driver->addRenderTargetTexture(
 			size, "render_lowres", video::ECF_A8R8G8B8);
+	RenderingCore::initTextures();
 }
 
 void RenderingCorePlain::clearTextures()
@@ -47,6 +48,7 @@ void RenderingCorePlain::clearTextures()
 	if (!scale)
 		return;
 	driver->removeTexture(lowres);
+	RenderingCore::clearTextures();
 }
 
 void RenderingCorePlain::beforeDraw()
